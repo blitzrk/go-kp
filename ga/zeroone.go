@@ -2,7 +2,7 @@ package ga
 
 import "sort"
 
-type BinaryFit struct {
+type ZeroOneFit struct {
 	cache map[string]float64
 
 	Scores  []float64
@@ -10,7 +10,7 @@ type BinaryFit struct {
 	MaxW    float64
 }
 
-func (b *BinaryFit) Fitness(cr Chromosome) float64 {
+func (b *ZeroOneFit) Fitness(cr Chromosome) float64 {
 	if b.cache == nil {
 		b.cache = make(map[string]float64)
 	}
@@ -47,7 +47,7 @@ func (s byScore) Len() int           { return len(s) }
 func (s byScore) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s byScore) Less(i, j int) bool { return s[i].score < s[j].score }
 
-func (b *BinaryFit) Greedy() Chromosome {
+func (b *ZeroOneFit) Greedy() Chromosome {
 	pairs := make([]pair, len(b.Scores))
 	for i, v := range b.Scores {
 		pairs[i] = pair{i, v}

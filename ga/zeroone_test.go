@@ -12,7 +12,7 @@ var testZeroOneP = &Parameters{
 	CrossProb:  0.85,
 	MutateProb: 0.001,
 	MaxGens:    5,
-	Performance: &BinaryFit{
+	Performance: &ZeroOneFit{
 		Scores:  []float64{3, 4, 6},
 		Weights: []float64{3, 4, 6},
 		MaxW:    7,
@@ -20,7 +20,7 @@ var testZeroOneP = &Parameters{
 }
 
 func TestGreedy(t *testing.T) {
-	if gp, ok := interface{}(testZeroOneP.Performance).(Greedyer); ok {
+	if gp, ok := interface{}(testZeroOneP.Performance).(GreedyAlg); ok {
 		got := gp.Greedy()
 		expect := Chromosome([]byte{0, 0, 1})
 
@@ -28,6 +28,6 @@ func TestGreedy(t *testing.T) {
 			t.Errorf("Got %v, expected %v", got, expect)
 		}
 	} else {
-		t.Error("BinaryFit should implement Greedyer")
+		t.Error("ZeroOneFit should implement GreedyAlg")
 	}
 }

@@ -36,7 +36,7 @@ func NewRandChromosome(p *Parameters) Chromosome {
 	return c
 }
 
-type Greedyer interface {
+type GreedyAlg interface {
 	Greedy() Chromosome
 }
 
@@ -44,7 +44,7 @@ func NewRandPop(p *Parameters) generation {
 	gen := make(generation, p.Pop)
 
 	var nGreedy int
-	if gp, ok := interface{}(p).(Greedyer); ok {
+	if gp, ok := interface{}(p).(GreedyAlg); ok {
 		nGreedy = 1
 		gen[len(gen)-1] = gp.Greedy()
 	}
