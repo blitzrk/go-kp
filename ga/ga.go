@@ -38,14 +38,30 @@ type Parameters struct {
 	MaxGens    uint32
 }
 
-func NewRandChromosome(p *Parameters) Chromosome {
-	c := make(Chromosome, p.ChromLen)
-	for i := 0; i < len(c); i++ {
-		c[i] = byte(rand.Intn(int(p.ChromChars)))
+func randChromosomeFunc(chars, clen int) func() Chromosome {
+	return func() Chromosome {
+		c := make(Chromosome, clen)
+		for i := 0; i < len(c); i++ {
+			c[i] = byte(rand.Intn(chars))
+		}
+		return c
 	}
-	return c
 }
 
-type GreedyAlg interface {
-	Greedy() Chromosome
+func Run(p *Parameters) error {
+	for gen := 0; gen < int(p.MaxGens); gen++ {
+		// Generate initial population
+		cf := randChromosomeFunc(int(p.ChromChars), int(p.ChromLen))
+		g := NewInitGen(int(p.Pop), cf)
+		if gp, ok := interface{}(p).(GreedyAlg); ok {
+			ImproveInitGen(g, gp)
+		}
+
+		// Select portion of population to breed
+		breeders := g.Select(int(p.Elite), p.Performance)
+
+		// TODO(ben): Breed
+		_ = breeders
+	}
+	return nil
 }

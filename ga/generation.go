@@ -9,6 +9,21 @@ type Generation struct {
 	pairs pairs
 }
 
+func (g *Generation) rank(p Performance) pairs {
+	if g.pairs != nil {
+		return g.pairs
+	}
+
+	ps := make(pairs, len(g.generation))
+	for i, c := range g.generation {
+		ps[i] = pair{i, p.Fitness(c)}
+	}
+	sort.Sort(sort.Reverse(byScore(ps)))
+	g.pairs = ps
+
+	return ps
+}
+
 func NewGeneration(g generation) *Generation {
 	return &Generation{g, nil}
 }
@@ -21,25 +36,18 @@ func (g *Generation) cherryPick(its []int) generation {
 	return pick
 }
 
-func (g *Generation) extractElite(p *Parameters) (*Generation, *Generation) {
-	elite := make(generation, p.Pop)
-	rem := make(generation, len(g.generation)-int(p.Pop))
+func (g *Generation) extractElite(n int, p Performance) (*Generation, *Generation) {
+	elite := make(generation, n)
+	rem := make(generation, len(g.generation)-n)
 
-	ps := make(pairs, len(g.generation))
-	for i, c := range g.generation {
-		ps[i] = pair{i, p.Fitness(c)}
-	}
-	sort.Sort(sort.Reverse(byScore(ps)))
-	g.pairs = ps
-
-	sortedChroms := g.cherryPick(ps.Items())
-	copy(elite, sortedChroms[:p.Pop])
-	copy(rem, sortedChroms[p.Pop:])
+	sortedChroms := g.cherryPick(g.rank(p).Items())
+	copy(elite, sortedChroms[:n])
+	copy(rem, sortedChroms[n:])
 
 	return NewGeneration(elite), NewGeneration(rem)
 }
 
-func (g *Generation) roulette(p *Parameters) *Generation {
+func (g *Generation) roulette(p Performance) *Generation {
 	// TODO(ben): implement roulette method
 	return g
 }
@@ -51,24 +59,26 @@ func (g1 *Generation) merge(g2 *Generation) *Generation {
 	return NewGeneration(m)
 }
 
-func (g *Generation) Select(p *Parameters) *Generation {
-	elite, rem := g.extractElite(p)
+func (g *Generation) Select(nElite int, p Performance) *Generation {
+	elite, rem := g.extractElite(nElite, p)
 	sel := rem.roulette(p)
 	return sel.merge(elite)
 }
 
-func NewInitGen(p *Parameters) *Generation {
-	gen := make(generation, p.Pop)
+func NewInitGen(popSize int, randChrom func() Chromosome) *Generation {
+	gen := make(generation, popSize)
 
-	var nGreedy int
-	if gp, ok := interface{}(p).(GreedyAlg); ok {
-		nGreedy = 1
-		gen[len(gen)-1] = gp.Greedy()
-	}
-
-	for i := 0; i < len(gen)-nGreedy; i++ {
-		gen[i] = NewRandChromosome(p)
+	for i := 0; i < len(gen); i++ {
+		gen[i] = randChrom()
 	}
 
 	return NewGeneration(gen)
+}
+
+type GreedyAlg interface {
+	Greedy() Chromosome
+}
+
+func ImproveInitGen(gen *Generation, gp GreedyAlg) {
+	gen.generation[0] = gp.Greedy()
 }
