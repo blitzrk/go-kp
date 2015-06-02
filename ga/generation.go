@@ -56,7 +56,7 @@ func (g1 *Generation) merge(g2 *Generation) *Generation {
 	m := make(generation, len(g1.generation)+len(g2.generation))
 	copy(m[:len(g1.generation)], g1.generation)
 	copy(m[len(g1.generation):], g2.generation)
-	return NewGeneration(m)
+	return &Generation{m, g1.pairs.MergeSortedDesc(g2.pairs)}
 }
 
 func (g *Generation) Select(nElite int, p Performance) *Generation {
