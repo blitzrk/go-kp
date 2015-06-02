@@ -2,6 +2,7 @@ package ga
 
 import "sort"
 
+// Conforms to the Performance and GreedyAlg interfaces
 type ZeroOneFit struct {
 	cache map[string]float64
 
@@ -35,17 +36,6 @@ func (b *ZeroOneFit) Fitness(cr Chromosome) float64 {
 	b.cache[string(cr)] = sumS
 	return sumS
 }
-
-type pair struct {
-	item  int
-	score float64
-}
-
-type byScore []pair
-
-func (s byScore) Len() int           { return len(s) }
-func (s byScore) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-func (s byScore) Less(i, j int) bool { return s[i].score < s[j].score }
 
 func (b *ZeroOneFit) Greedy() Chromosome {
 	pairs := make([]pair, len(b.Scores))

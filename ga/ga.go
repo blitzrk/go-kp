@@ -1,6 +1,7 @@
 package ga
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 )
@@ -12,14 +13,23 @@ type Performance interface {
 }
 
 func (c Chromosome) String() string {
-	return fmt.Sprintf("%v", []uint8(c))
-}
+	var b bytes.Buffer
+	a := []byte(c)
+	f := "%#v"
 
-type generation []Chromosome
+	b.WriteString("[")
+	b.WriteString(fmt.Sprintf(f, a[0]))
+	for i := 1; i < len(a); i++ {
+		b.WriteString(fmt.Sprintf(", "+f, a[i]))
+	}
+	b.WriteString("]")
+	return b.String()
+}
 
 type Parameters struct {
 	Performance
 	ChromLen   uint
+	ChromChars uint8
 	Pop        uint
 	Elite      uint8
 	Crosses    uint8
@@ -31,27 +41,11 @@ type Parameters struct {
 func NewRandChromosome(p *Parameters) Chromosome {
 	c := make(Chromosome, p.ChromLen)
 	for i := 0; i < len(c); i++ {
-		c[i] = byte(rand.Intn(2))
+		c[i] = byte(rand.Intn(int(p.ChromChars)))
 	}
 	return c
 }
 
 type GreedyAlg interface {
 	Greedy() Chromosome
-}
-
-func NewRandPop(p *Parameters) generation {
-	gen := make(generation, p.Pop)
-
-	var nGreedy int
-	if gp, ok := interface{}(p).(GreedyAlg); ok {
-		nGreedy = 1
-		gen[len(gen)-1] = gp.Greedy()
-	}
-
-	for i := 0; i < len(gen)-nGreedy; i++ {
-		gen[i] = NewRandChromosome(p)
-	}
-
-	return gen
 }

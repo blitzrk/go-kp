@@ -4,8 +4,9 @@ import (
 	"testing"
 )
 
-var testP = &Parameters{
+var testParam = &Parameters{
 	ChromLen:   3,
+	ChromChars: 2,
 	Pop:        3,
 	Elite:      2,
 	Crosses:    1,
@@ -14,6 +15,14 @@ var testP = &Parameters{
 	MaxGens:    5,
 }
 
-func TestPop(t *testing.T) {
-	t.Log(NewRandPop(testP))
+var testGen = generation{
+	Chromosome{0x1, 0x1, 0x0, 0x1},
+	Chromosome{0x0, 0x1, 0x1, 0x0},
+	Chromosome{0x1, 0x0, 0x0, 0x0},
+	Chromosome{0x0, 0x0, 0x0, 0x1},
+}
+
+// (cd ga; go test -v)
+func TestNewInitGen(t *testing.T) {
+	t.Log(NewInitGen(testParam))
 }
