@@ -24,12 +24,15 @@ func (p *Parameters) reset() {
 }
 
 func (p *Parameters) evalAt(i, w int) int {
+	// i counts items 1..n, j counts 0..n-1
+	j := i - 1
+
 	prev := p.v[i-1][w]
-	if w < p.Weights[i-1] {
+	if w < p.Weights[j] {
 		return prev
 	}
-	alt := p.Scores[i-1] + p.v[i-1][w-p.Weights[i-1]]
 
+	alt := p.Scores[j] + p.v[i-1][w-p.Weights[j]]
 	if alt > prev {
 		return alt
 	} else {
