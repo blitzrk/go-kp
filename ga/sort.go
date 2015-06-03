@@ -37,23 +37,30 @@ func minInt(a, b int) int {
 }
 
 func (ps1 pairs) MergeSortedDesc(ps2 pairs) pairs {
-	merged := make(pairs, len(ps1)+len(ps2))
-	n := minInt(len(ps1), len(ps2))
+	n1 := len(ps1)
+	n2 := len(ps2)
+	n := n1 + n2
+	merged := make(pairs, n)
 
+	nmin := minInt(n1, n2)
+	var j1, j2 int
 	for i := 0; i < n; i++ {
-		if ps1[i].score > ps2[i].score {
-			merged[i*2] = ps1[i]
-			merged[i*2+1] = ps2[i]
+		if j1 >= n1 {
+			copy(merged[i:], ps2[j2:])
+			break
+		} else if j2 >= n2 {
+			copy(merged[i:], ps1[j1:])
+			break
+		}
+
+		if ps1[j1].score > ps2[j2].score {
+			merged[i] = ps1[j1]
+			j1++
 		} else {
-			merged[i*2] = ps2[i]
-			merged[i*2+1] = ps1[i]
+			merged[i] = ps2[j2]
+			j2++
 		}
 	}
 
-	if len(ps1) < len(ps2) {
-		copy(merged[n*2:], ps2[n:])
-	} else {
-		copy(merged[n*2:], ps1[n:])
-	}
 	return merged
 }
