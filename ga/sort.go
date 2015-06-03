@@ -42,7 +42,6 @@ func (ps1 pairs) MergeSortedDesc(ps2 pairs) pairs {
 	n := n1 + n2
 	merged := make(pairs, n)
 
-	nmin := minInt(n1, n2)
 	var j1, j2 int
 	for i := 0; i < n; i++ {
 		if j1 >= n1 {
