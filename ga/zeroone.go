@@ -2,7 +2,7 @@ package ga
 
 import "sort"
 
-// Conforms to the Performance and GreedyAlg interfaces
+// Conforms to the GreedyPerformance
 type ZeroOneFit struct {
 	cache map[string]float64
 

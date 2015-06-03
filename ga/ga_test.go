@@ -15,12 +15,12 @@ var testParam = &Parameters{
 	MaxGens:    5,
 }
 
-var testGen = NewGeneration(generation{
+var testGen = &Generation{generation{
 	Chromosome{0x1, 0x1, 0x0, 0x1},
 	Chromosome{0x0, 0x1, 0x1, 0x0},
 	Chromosome{0x1, 0x0, 0x0, 0x0},
 	Chromosome{0x0, 0x0, 0x0, 0x1},
-})
+}, nil}
 
 // (cd ga; go test -v)
 // func TestNewInitGen(t *testing.T) {

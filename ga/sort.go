@@ -1,5 +1,7 @@
 package ga
 
+import "fmt"
+
 type pair struct {
 	item  int
 	score float64
@@ -29,11 +31,23 @@ func (ps pairs) Scores() (scs []float64) {
 	return
 }
 
-func minInt(a, b int) int {
-	if a < b {
-		return a
+func (ps pairs) Renumber() {
+	for i, p := range ps {
+		p.item = i
 	}
-	return b
+}
+
+func (ps pairs) Subset(i, j int) pairs {
+	if j < i {
+		panic(fmt.Sprintf("Invalid subset [%v, %v)", i, j))
+	}
+
+	sub := make(pairs, j-i)
+	for k := 0; k < j-i; k++ {
+		sub[k] = pair{k + 1, ps[i+k].score}
+	}
+	sub.Renumber()
+	return sub
 }
 
 func (ps1 pairs) MergeSortedDesc(ps2 pairs) pairs {
@@ -61,5 +75,6 @@ func (ps1 pairs) MergeSortedDesc(ps2 pairs) pairs {
 		}
 	}
 
+	merged.Renumber()
 	return merged
 }

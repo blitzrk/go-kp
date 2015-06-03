@@ -53,7 +53,7 @@ func Run(p *Parameters) error {
 		// Generate initial population
 		cf := randChromosomeFunc(int(p.ChromChars), int(p.ChromLen))
 		g := NewInitGen(int(p.Pop), cf)
-		if gp, ok := interface{}(p).(GreedyAlg); ok {
+		if gp, ok := interface{}(p).(GreedyPerformance); ok {
 			ImproveInitGen(g, gp)
 		}
 

@@ -20,7 +20,7 @@ var testZeroOneP = &Parameters{
 }
 
 func TestGreedy(t *testing.T) {
-	if gp, ok := interface{}(testZeroOneP.Performance).(GreedyAlg); ok {
+	if gp, ok := interface{}(testZeroOneP.Performance).(GreedyPerformance); ok {
 		got := gp.Greedy()
 		expect := Chromosome([]byte{0, 0, 1})
 
@@ -28,6 +28,6 @@ func TestGreedy(t *testing.T) {
 			t.Errorf("Got %v, expected %v", got, expect)
 		}
 	} else {
-		t.Error("ZeroOneFit should implement GreedyAlg")
+		t.Error("ZeroOneFit should implement GreedyPerformance")
 	}
 }
