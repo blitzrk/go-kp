@@ -85,19 +85,22 @@ func SortResults(rs []*RunResult) {
 
 // This is the main function for running the algorithm.
 func Run(p *Parameters) (*RunResult, error) {
-	for gen := 0; gen < int(p.MaxGens); gen++ {
-		// Generate initial population
-		cf := randChromosomeFunc(int(p.ChromChars), int(p.ChromLen), p.Performance)
-		g := NewInitGen(int(p.Pop), cf)
-		if gp, ok := interface{}(p).(GreedyPerformance); ok {
-			ImproveInitGen(g, gp)
-		}
+	// Generate initial population
+	cf := randChromosomeFunc(int(p.ChromChars), int(p.ChromLen), p.Performance)
+	g := NewInitGen(int(p.Pop), cf)
+	if gp, ok := interface{}(p).(GreedyPerformance); ok {
+		ImproveInitGen(g, gp)
+	}
 
+	for gen := 0; gen < int(p.MaxGens); gen++ {
 		// Select portion of population to breed
 		breeders := g.Select(int(p.Elite), p.Performance)
 
 		// TODO(ben): Breed
 		_ = breeders
+
+		// TODO(ben): Check stopping conditions
 	}
+
 	return nil, nil
 }

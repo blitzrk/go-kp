@@ -3,6 +3,7 @@ package ga
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"sort"
 )
 
@@ -73,10 +74,43 @@ func (g *Generation) extractElite(n int, p Performance) (*Generation, *Generatio
 // Implements the roulette-wheel selection method for deciding
 // probabilistically which chromosomes to breed. Alternate selection methods
 // exist, but for now roulette is built in and is the only option.
-func (g *Generation) roulette(p Performance) *Generation {
-	// TODO(ben): implement roulette method
+func (g *Generation) roulette() *Generation {
+	// Determine cutoffs for CDF
+	scores := g.meta.Scores()
+	var total float64
+	for _, v := range scores {
+		total += v
+	}
+	cutoffs := make([]float64, len(g.meta))
+	for i, _ := range cutoffs {
+		cutoffs[i] = scores[i] / total
+	}
 
-	return g
+	// Make n spins to select up to n chromosomes
+	n := len(g.generation)
+	set := make(map[int]struct{})
+	for i := 0; i < n; i++ {
+		r := rand.Float64()
+		for i, v := range cutoffs {
+			if r <= v {
+				set[i] = struct{}{}
+				break
+			}
+		}
+	}
+
+	// Extract set's keys for selections
+	sel := make([]int, len(set))
+	i := 0
+	for k, _ := range set {
+		sel[i] = k
+		i++
+	}
+
+	// Make a generation of just those chromosomes
+	parents := &Generation{g.cherryPick(sel), nil}
+
+	return parents
 }
 
 // Merges two generations and returns the new one instance pointer. The intent
@@ -99,7 +133,8 @@ func (g1 *Generation) merge(g2 *Generation) *Generation {
 // roulette method) based on fitness to be used as the parent generation.
 func (g *Generation) Select(nElite int, p Performance) *Generation {
 	elite, rem := g.extractElite(nElite, p)
-	sel := rem.roulette(p)
+	sel := rem.roulette()
+	sel.rank(p)
 	return sel.merge(elite)
 }
 
@@ -129,9 +164,9 @@ type GreedyPerformance interface {
 func ImproveInitGen(gen *Generation, gp GreedyPerformance) {
 	g := &Generation{generation{gp.Greedy()}, nil}
 	gen = gen.merge(g)
-	gen.rank(gp)
 
 	// Known memory leak: but only 2 meta and only run once
+	gen.rank(gp)
 	worst := gen.meta[len(gen.meta)-1].item
 	gen = &Generation{
 		append(gen.generation[:worst], gen.generation[worst+1:]...),
