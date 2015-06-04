@@ -6,38 +6,38 @@ import (
 )
 
 var tests = []struct {
-	in  pairs
-	out pairs
+	in  metadata
+	out metadata
 }{
 	{
-		pairs{
-			pair{1, 1.5},
-			pair{2, 2.0},
+		metadata{
+			data{1, 1.5},
+			data{2, 2.0},
 		},
-		pairs{
-			pair{2, 2.0},
-			pair{1, 1.5},
+		metadata{
+			data{2, 2.0},
+			data{1, 1.5},
 		},
 	},
 	{
-		pairs{
-			pair{1, 6.6},
-			pair{2, 12.0},
-			pair{3, 7.0},
-			pair{4, 5.5},
-			pair{5, 8.0},
+		metadata{
+			data{1, 6.6},
+			data{2, 12.0},
+			data{3, 7.0},
+			data{4, 5.5},
+			data{5, 8.0},
 		},
-		pairs{
-			pair{2, 12.0},
-			pair{5, 8.0},
-			pair{3, 7.0},
-			pair{1, 6.6},
-			pair{4, 5.5},
+		metadata{
+			data{2, 12.0},
+			data{5, 8.0},
+			data{3, 7.0},
+			data{1, 6.6},
+			data{4, 5.5},
 		},
 	},
 }
 
-func (ps1 pairs) equals(ps2 pairs) bool {
+func (ps1 metadata) equals(ps2 metadata) bool {
 	if len(ps1) != len(ps2) {
 		return false
 	}
@@ -61,7 +61,7 @@ func TestSort(t *testing.T) {
 
 func TestMergeSortedDesc(t *testing.T) {
 	for i := 1; i < len(tests); i++ {
-		expect := make(pairs, len(tests[i].out))
+		expect := make(metadata, len(tests[i].out))
 		copy(expect, tests[i].out)
 		expect = append(expect, tests[i-1].out...)
 		sort.Sort(sort.Reverse(byScore(expect)))

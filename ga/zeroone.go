@@ -38,17 +38,17 @@ func (b *ZeroOneFit) Fitness(cr Chromosome) float64 {
 }
 
 func (b *ZeroOneFit) Greedy() Chromosome {
-	pairs := make([]pair, len(b.Scores))
+	meta := make([]data, len(b.Scores))
 	for i, v := range b.Scores {
-		pairs[i] = pair{i, v}
+		meta[i] = data{i, v}
 	}
-	sort.Sort(sort.Reverse(byScore(pairs)))
+	sort.Sort(sort.Reverse(byScore(meta)))
 
 	var total float64
 	var curr int
-	best := make(Chromosome, len(pairs))
+	best := make(Chromosome, len(meta))
 	for i := 0; total <= b.MaxW; i++ {
-		curr = pairs[i].item
+		curr = meta[i].item
 		best[curr] = 0x1
 		total += b.Weights[curr]
 	}

@@ -2,20 +2,20 @@ package ga
 
 import "fmt"
 
-type pair struct {
+type data struct {
 	item  int
 	score float64
 }
 
-type byScore []pair
+type byScore []data
 
 func (s byScore) Len() int           { return len(s) }
 func (s byScore) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s byScore) Less(i, j int) bool { return s[i].score < s[j].score }
 
-type pairs byScore
+type metadata byScore
 
-func (ps pairs) Items() (its []int) {
+func (ps metadata) Items() (its []int) {
 	its = make([]int, len(ps))
 	for i, v := range ps {
 		its[i] = v.item
@@ -23,7 +23,7 @@ func (ps pairs) Items() (its []int) {
 	return
 }
 
-func (ps pairs) Scores() (scs []float64) {
+func (ps metadata) Scores() (scs []float64) {
 	scs = make([]float64, len(ps))
 	for i, v := range ps {
 		scs[i] = v.score
@@ -31,30 +31,28 @@ func (ps pairs) Scores() (scs []float64) {
 	return
 }
 
-func (ps pairs) Renumber() {
-	for i, p := range ps {
-		p.item = i
-	}
-}
-
-func (ps pairs) Subset(i, j int) pairs {
+// Returns a new slice (replaces underlying array) of metadata with items
+// renumbered. Thus it is required that the metadata already be in order.
+func (ps metadata) Subset(i, j int) metadata {
 	if j < i {
 		panic(fmt.Sprintf("Invalid subset [%v, %v)", i, j))
 	}
 
-	sub := make(pairs, j-i)
+	sub := make(metadata, j-i)
 	for k := 0; k < j-i; k++ {
-		sub[k] = pair{k + 1, ps[i+k].score}
+		sub[k] = data{k, ps[i+k].score}
 	}
-	sub.Renumber()
 	return sub
 }
 
-func (ps1 pairs) MergeSortedDesc(ps2 pairs) pairs {
+// Takes two individually ordered data slices and sorts them into a new slice
+// in O(n+m) time. It assumes that the related generation is merged with the
+// second appended to the first and renumbers as such.
+func (ps1 metadata) MergeSortedDesc(ps2 metadata) metadata {
 	n1 := len(ps1)
 	n2 := len(ps2)
 	n := n1 + n2
-	merged := make(pairs, n)
+	merged := make(metadata, n)
 
 	var j1, j2 int
 	for i := 0; i < n; i++ {
@@ -73,8 +71,10 @@ func (ps1 pairs) MergeSortedDesc(ps2 pairs) pairs {
 			merged[i] = ps2[j2]
 			j2++
 		}
+
+		// Renumbers metadata
+		merged[i].item = i
 	}
 
-	merged.Renumber()
 	return merged
 }

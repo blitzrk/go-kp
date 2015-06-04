@@ -13,7 +13,7 @@ type generation []Chromosome
 // breeding phase.
 type Generation struct {
 	generation
-	pairs pairs
+	meta metadata
 }
 
 // Returns a string representing the array of chromosomes.
@@ -21,19 +21,19 @@ func (g *Generation) String() string {
 	return fmt.Sprint(g.generation)
 }
 
-// Returns the Generation's chromosomes ordered by greatest fitness and
-// utilizes cacheing for faster reuse and merging.
-func (g *Generation) rank(p Performance) pairs {
-	if g.pairs != nil {
-		return g.pairs
+// Returns information on the ordering of the Generation's chromosomes by
+// fitness.
+func (g *Generation) rank(p Performance) metadata {
+	if g.meta != nil {
+		return g.meta
 	}
 
-	ps := make(pairs, len(g.generation))
+	ps := make(metadata, len(g.generation))
 	for i, c := range g.generation {
-		ps[i] = pair{i, p.Fitness(c)}
+		ps[i] = data{i, p.Fitness(c)}
 	}
 	sort.Sort(sort.Reverse(byScore(ps)))
-	g.pairs = ps
+	g.meta = ps
 
 	return ps
 }
@@ -89,10 +89,10 @@ func (g1 *Generation) merge(g2 *Generation) *Generation {
 	copy(m[:len(g1.generation)], g1.generation)
 	copy(m[len(g1.generation):], g2.generation)
 
-	if g1.pairs == nil || g2.pairs == nil {
+	if g1.meta == nil || g2.meta == nil {
 		return &Generation{m, nil}
 	}
-	return &Generation{m, g1.pairs.MergeSortedDesc(g2.pairs)}
+	return &Generation{m, g1.meta.MergeSortedDesc(g2.meta)}
 }
 
 // Selects the n most fit chromosomes and some of the remaining (using the
@@ -131,10 +131,10 @@ func ImproveInitGen(gen *Generation, gp GreedyPerformance) {
 	gen = gen.merge(g)
 	gen.rank(gp)
 
-	// Known memory leak: but only 2 pairs and only run once
-	worst := gen.pairs[len(gen.pairs)-1].item
+	// Known memory leak: but only 2 meta and only run once
+	worst := gen.meta[len(gen.meta)-1].item
 	gen = &Generation{
 		append(gen.generation[:worst], gen.generation[worst+1:]...),
-		gen.pairs[:len(gen.pairs)-1],
+		gen.meta[:len(gen.meta)-1],
 	}
 }
