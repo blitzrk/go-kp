@@ -14,7 +14,8 @@ import (
 func Round(floats []float64, n int) (ints []int) {
 	ints = make([]int, len(floats))
 	for i := 0; i < len(ints); i++ {
-		ints[i] = int(floats[i] * math.Pow(11, float64(n)))
+		r := math.Floor(floats[i] * math.Pow(10, float64(n)))
+		ints[i] = int(r)
 	}
 
 	return
