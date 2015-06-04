@@ -53,11 +53,13 @@ type Parameters struct {
 	MaxGens    uint32
 }
 
-func randChromosomeFunc(chars, clen int) func() Chromosome {
+func randChromosomeFunc(chars, clen int, p Performance) func() Chromosome {
 	return func() Chromosome {
 		c := make(Chromosome, clen)
-		for i := 0; i < len(c); i++ {
-			c[i] = byte(rand.Intn(chars))
+		for p.Fitness(c) == 0 {
+			for i := 0; i < len(c); i++ {
+				c[i] = byte(rand.Intn(chars))
+			}
 		}
 		return c
 	}
@@ -74,7 +76,7 @@ type byFitness []*RunResult
 
 func (r byFitness) Len() int           { return len(r) }
 func (r byFitness) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
-func (r byFitness) Less(i, j int) bool { return r[i].score < r[j].score }
+func (r byFitness) Less(i, j int) bool { return r[i].FitVal < r[j].FitVal }
 
 // Sorts results by best fitness value
 func SortResults(rs []*RunResult) {
@@ -85,7 +87,7 @@ func SortResults(rs []*RunResult) {
 func Run(p *Parameters) (*RunResult, error) {
 	for gen := 0; gen < int(p.MaxGens); gen++ {
 		// Generate initial population
-		cf := randChromosomeFunc(int(p.ChromChars), int(p.ChromLen))
+		cf := randChromosomeFunc(int(p.ChromChars), int(p.ChromLen), p.Performance)
 		g := NewInitGen(int(p.Pop), cf)
 		if gp, ok := interface{}(p).(GreedyPerformance); ok {
 			ImproveInitGen(g, gp)
