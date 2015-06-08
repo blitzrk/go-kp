@@ -45,34 +45,16 @@ func (ps metadata) Subset(i, j int) metadata {
 	return sub
 }
 
-// Takes two individually ordered data slices and sorts them into a new slice
-// in O(n+m) time. It assumes that the related generation is merged with the
-// second appended to the first and renumbers as such.
-func (ps1 metadata) MergeSortedDesc(ps2 metadata) metadata {
+// Combines metadata by appending and then renumbers.
+func (ps1 metadata) append(ps2 metadata) metadata {
 	n1 := len(ps1)
 	n2 := len(ps2)
 	n := n1 + n2
 	merged := make(metadata, n)
+	copy(merged[:n1], ps1)
+	copy(merged[n1:], ps2)
 
-	var j1, j2 int
 	for i := 0; i < n; i++ {
-		if j1 >= n1 {
-			copy(merged[i:], ps2[j2:])
-			break
-		} else if j2 >= n2 {
-			copy(merged[i:], ps1[j1:])
-			break
-		}
-
-		if ps1[j1].score > ps2[j2].score {
-			merged[i] = ps1[j1]
-			j1++
-		} else {
-			merged[i] = ps2[j2]
-			j2++
-		}
-
-		// Renumbers metadata
 		merged[i].item = i
 	}
 

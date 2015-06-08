@@ -11,7 +11,7 @@ func (g *Generation) Select(nElite int, p Performance) *Generation {
 	elite, rem := g.extractElite(nElite, p)
 	sel := rem.roulette()
 	sel.rank(p)
-	return sel.merge(elite)
+	return sel.append(elite)
 }
 
 // Separates the n chromosomes with highest fitness and the rest as two

@@ -2,14 +2,17 @@ package ga
 
 import "testing"
 
-type TestCM []byte
+type TestCM Chromosome
 
 func (cm *TestCM) Key() string      { return string(*cm) }
 func (cm *TestCM) Len() int         { return len(*cm) }
 func (cm *TestCM) Loc(i int) byte   { return (*cm)[i] }
 func (cm *TestCM) MutateChar(i int) { return }
+func (cm *TestCM) String() string   { return Chromosome(*cm).String() }
 
-type TestPerf struct{}
+type TestPerf struct {
+	Length int
+}
 
 func (p *TestPerf) Fitness(cm ChromosomeModel) float64 {
 	var sum float64
@@ -19,8 +22,16 @@ func (p *TestPerf) Fitness(cm ChromosomeModel) float64 {
 	return sum
 }
 
-func (p *TestPerf) Rand(i int) ChromosomeModel {
-	cm := make(TestCM, i)
+func (p *TestPerf) Rand() ChromosomeModel {
+	cm := make(TestCM, p.Length)
+	return &cm
+}
+
+func (p *TestPerf) Greedy() ChromosomeModel {
+	cm := make(TestCM, p.Length)
+	if p.Length > 0 {
+		cm[0] = 0x1
+	}
 	return &cm
 }
 
@@ -143,12 +154,90 @@ func TestGenerationMerge(t *testing.T) {
 				nil,
 			},
 		},
+		{
+			&Generation{
+				generation{
+					&TestCM{0x1, 0x1, 0x1, 0x1},
+					&TestCM{0x1, 0x1, 0x1, 0x0},
+				},
+				metadata{
+					data{0, 4},
+					data{1, 3},
+				},
+			},
+			&Generation{
+				generation{
+					&TestCM{0x1, 0x1, 0x0, 0x0},
+					&TestCM{0x1, 0x0, 0x0, 0x0},
+				},
+				metadata{
+					data{0, 2},
+					data{1, 1},
+				},
+			},
+			&Generation{
+				generation{
+					&TestCM{0x1, 0x1, 0x1, 0x1},
+					&TestCM{0x1, 0x1, 0x1, 0x0},
+					&TestCM{0x1, 0x1, 0x0, 0x0},
+					&TestCM{0x1, 0x0, 0x0, 0x0},
+				},
+				metadata{
+					data{0, 4},
+					data{1, 3},
+					data{2, 2},
+					data{3, 1},
+				},
+			},
+		},
 	}
 
 	for num, test := range tests {
-		out := test.in1.merge(test.in2)
+		out := test.in1.append(test.in2)
 		if !generationsEqual(out.gen, test.out.gen) || !metadataEqual(out.meta, test.out.meta) {
 			t.Errorf("Test #%v failed: Expected %v, got %v.\n", num+1, test.out, out)
+		}
+	}
+}
+
+func TestImproveInitGen(t *testing.T) {
+	tests := []struct {
+		in   *Generation
+		perf GreedyPerformance
+		out  *Generation
+	}{
+		{
+			&Generation{
+				generation{
+					&TestCM{0x0, 0x0, 0x0, 0x0},
+					&TestCM{0x0, 0x0, 0x0, 0x0},
+				},
+				nil,
+			},
+			&TestPerf{4},
+			&Generation{
+				generation{
+					&TestCM{0x1, 0x0, 0x0, 0x0},
+					&TestCM{0x0, 0x0, 0x0, 0x0},
+				},
+				nil,
+			},
+		},
+	}
+
+	for num, test := range tests {
+		out := &Generation{make(generation, len(test.in.gen)), nil}
+		copy(out.gen, test.in.gen)
+		if test.in.meta != nil {
+			out.meta = make(metadata, len(test.in.meta))
+			copy(out.meta, test.in.meta)
+		}
+
+		ImproveInitGen(out, test.perf)
+		if !generationsEqual(out.gen, test.out.gen) || !metadataEqual(out.meta, test.out.meta) {
+			t.Log(out.gen)
+			t.Log(out.meta)
+			t.Errorf("Test #%v failed: Expected %v, got %#v.\n", num+1, test.out, out)
 		}
 	}
 }

@@ -32,7 +32,7 @@ type ChromosomeModel interface {
 // a non-viable Chromosome.
 type Performance interface {
 	Fitness(ChromosomeModel) float64
-	Rand(int) ChromosomeModel
+	Rand() ChromosomeModel
 }
 
 func (c Chromosome) String() string {
@@ -84,7 +84,7 @@ func SortResults(rs []*RunResult) {
 // This is the main function for running the algorithm.
 func Run(p *Parameters) (*RunResult, error) {
 	// Generate initial population
-	g := NewInitGen(int(p.InitPop), int(p.Loci), p.Perf.Rand)
+	g := NewInitGen(int(p.InitPop), p.Perf.Rand)
 	if gp, ok := interface{}(p.Perf).(GreedyPerformance); ok {
 		ImproveInitGen(g, gp)
 	}

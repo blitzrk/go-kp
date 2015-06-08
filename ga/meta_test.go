@@ -5,39 +5,13 @@ import (
 	"testing"
 )
 
-var tests = []struct {
-	in  metadata
-	out metadata
-}{
-	{
-		metadata{
-			data{1, 1.5},
-			data{2, 2.0},
-		},
-		metadata{
-			data{2, 2.0},
-			data{1, 1.5},
-		},
-	},
-	{
-		metadata{
-			data{1, 6.6},
-			data{2, 12.0},
-			data{3, 7.0},
-			data{4, 5.5},
-			data{5, 8.0},
-		},
-		metadata{
-			data{2, 12.0},
-			data{5, 8.0},
-			data{3, 7.0},
-			data{1, 6.6},
-			data{4, 5.5},
-		},
-	},
-}
-
 func metadataEqual(ps1, ps2 metadata) bool {
+	if ps1 == nil && ps2 == nil {
+		return true
+	}
+	if ps1 == nil || ps2 == nil {
+		return false
+	}
 	if len(ps1) != len(ps2) {
 		return false
 	}
@@ -51,25 +25,44 @@ func metadataEqual(ps1, ps2 metadata) bool {
 }
 
 func TestSort(t *testing.T) {
-	for i := 0; i < len(tests); i++ {
-		sort.Sort(sort.Reverse(byScore(tests[i].in)))
-		if !metadataEqual(tests[i].in, tests[i].out) {
-			t.Errorf("Sorting failed, got %v, expected %v", tests[i].in, tests[i].out)
-		}
+	tests := []struct {
+		in  metadata
+		out metadata
+	}{
+		{
+			metadata{
+				data{1, 1.5},
+				data{2, 2.0},
+			},
+			metadata{
+				data{2, 2.0},
+				data{1, 1.5},
+			},
+		},
+		{
+			metadata{
+				data{1, 6.6},
+				data{2, 12.0},
+				data{3, 7.0},
+				data{4, 5.5},
+				data{5, 8.0},
+			},
+			metadata{
+				data{2, 12.0},
+				data{5, 8.0},
+				data{3, 7.0},
+				data{1, 6.6},
+				data{4, 5.5},
+			},
+		},
 	}
-}
 
-func TestMergeSortedDesc(t *testing.T) {
-	for i := 1; i < len(tests); i++ {
-		expect := make(metadata, len(tests[i].out))
-		copy(expect, tests[i].out)
-		expect = append(expect, tests[i-1].out...)
-		sort.Sort(sort.Reverse(byScore(expect)))
-
-		got := tests[i].out.MergeSortedDesc(tests[i-1].out)
-		if len(got) != (len(tests[i].out)+len(tests[i-1].out)) ||
-			!sort.IsSorted(sort.Reverse(byScore(got))) {
-			t.Errorf("Merge sort failed, got %v, expected %v", got, expect)
+	for num, test := range tests {
+		out := make(metadata, len(test.in))
+		copy(out, test.in)
+		sort.Sort(sort.Reverse(byScore(out)))
+		if !metadataEqual(out, test.out) {
+			t.Errorf("Sort #%v failed, got %v, expected %v", num+1, out, test.out)
 		}
 	}
 }
