@@ -58,6 +58,97 @@ func TestRank(t *testing.T) {
 	}
 }
 
-func TestCherryPick(t *testing.T) {
+func generationsEqual(g1, g2 generation) bool {
+	if len(g1) != len(g2) {
+		return false
+	}
+	if len(g1) == 0 {
+		return true
+	}
 
+	for i := 0; i < len(g1); i++ {
+		if g1[i].Len() != g2[i].Len() {
+			return false
+		}
+		for j := 0; j < g1[i].Len(); j++ {
+			if g1[i].Loc(j) != g2[i].Loc(j) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func TestGenerationCherryPick(t *testing.T) {
+	tests := []struct {
+		gen *Generation
+		in  []int
+		out generation
+	}{
+		{
+			&Generation{
+				generation{
+					&TestCM{0x1, 0x1, 0x1, 0x0},
+					&TestCM{0x1, 0x1, 0x0, 0x0},
+					&TestCM{0x1, 0x1, 0x1, 0x1},
+					&TestCM{0x1, 0x0, 0x0, 0x0},
+				},
+				nil,
+			},
+			[]int{1, 0, 2},
+			generation{
+				&TestCM{0x1, 0x1, 0x0, 0x0},
+				&TestCM{0x1, 0x1, 0x1, 0x0},
+				&TestCM{0x1, 0x1, 0x1, 0x1},
+			},
+		},
+	}
+
+	for num, test := range tests {
+		out := test.gen.cherryPick(test.in)
+		if !generationsEqual(out, test.out) {
+			t.Errorf("Test #%v failed: Expected %v, got %v.\n", num+1, test.out, out)
+		}
+	}
+}
+
+func TestGenerationMerge(t *testing.T) {
+	tests := []struct {
+		in1 *Generation
+		in2 *Generation
+		out *Generation
+	}{
+		{
+			&Generation{
+				generation{
+					&TestCM{0x1, 0x1, 0x1, 0x0},
+					&TestCM{0x1, 0x1, 0x0, 0x0},
+				},
+				nil,
+			},
+			&Generation{
+				generation{
+					&TestCM{0x1, 0x1, 0x1, 0x1},
+					&TestCM{0x1, 0x0, 0x0, 0x0},
+				},
+				nil,
+			},
+			&Generation{
+				generation{
+					&TestCM{0x1, 0x1, 0x1, 0x0},
+					&TestCM{0x1, 0x1, 0x0, 0x0},
+					&TestCM{0x1, 0x1, 0x1, 0x1},
+					&TestCM{0x1, 0x0, 0x0, 0x0},
+				},
+				nil,
+			},
+		},
+	}
+
+	for num, test := range tests {
+		out := test.in1.merge(test.in2)
+		if !generationsEqual(out.gen, test.out.gen) || !metadataEqual(out.meta, test.out.meta) {
+			t.Errorf("Test #%v failed: Expected %v, got %v.\n", num+1, test.out, out)
+		}
+	}
 }
