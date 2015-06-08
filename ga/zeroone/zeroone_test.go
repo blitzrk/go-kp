@@ -24,7 +24,7 @@ func TestGreedy(t *testing.T) {
 		out ga.ChromosomeModel
 	}{
 		{
-			&Fit{
+			&Perf{
 				Scores:  []float64{3, 4, 6},
 				Weights: []float64{3, 4, 6},
 				MaxW:    7,

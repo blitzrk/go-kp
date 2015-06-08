@@ -29,7 +29,7 @@ func RandFactory(clen uint, p ga.Performance) func() ga.ChromosomeModel {
 }
 
 // Conforms to the GreedyPerformance interface
-type Fit struct {
+type Perf struct {
 	cache map[string]float64
 
 	Scores  []float64
@@ -37,11 +37,11 @@ type Fit struct {
 	MaxW    float64
 }
 
-func (fit *Fit) Fitness(cm ga.ChromosomeModel) float64 {
-	if fit.cache == nil {
-		fit.cache = make(map[string]float64)
+func (perf *Perf) Fitness(cm ga.ChromosomeModel) float64 {
+	if perf.cache == nil {
+		perf.cache = make(map[string]float64)
 	}
-	if v, ok := fit.cache[cm.Key()]; ok {
+	if v, ok := perf.cache[cm.Key()]; ok {
 		return v
 	}
 
@@ -49,23 +49,23 @@ func (fit *Fit) Fitness(cm ga.ChromosomeModel) float64 {
 	var sumW float64
 	for i := 0; i < cm.Len(); i++ {
 		if cm.Loc(i) == 0x1 {
-			sumS += fit.Scores[i]
-			sumW += fit.Weights[i]
+			sumS += perf.Scores[i]
+			sumW += perf.Weights[i]
 		}
 	}
 
 	// Zero fitness if infeasible
-	if sumW > fit.MaxW {
+	if sumW > perf.MaxW {
 		sumS = 0
 	}
 
-	fit.cache[cm.Key()] = sumS
+	perf.cache[cm.Key()] = sumS
 	return sumS
 }
 
-func (fit *Fit) Rand(clen int) ga.ChromosomeModel {
+func (perf *Perf) Rand(clen int) ga.ChromosomeModel {
 	c := make(Chromosome, clen)
-	for fit.Fitness(&c) == 0 {
+	for perf.Fitness(&c) == 0 {
 		for i := 0; i < len(c); i++ {
 			c[i] = byte(rand.Intn(2))
 		}
@@ -84,9 +84,9 @@ func (s byScore) Len() int           { return len(s) }
 func (s byScore) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s byScore) Less(i, j int) bool { return s[i].score < s[j].score }
 
-func (fit *Fit) Greedy() ga.ChromosomeModel {
-	meta := make([]data, len(fit.Scores))
-	for i, v := range fit.Scores {
+func (perf *Perf) Greedy() ga.ChromosomeModel {
+	meta := make([]data, len(perf.Scores))
+	for i, v := range perf.Scores {
 		meta[i] = data{i, v}
 	}
 	sort.Sort(sort.Reverse(byScore(meta)))
@@ -94,10 +94,10 @@ func (fit *Fit) Greedy() ga.ChromosomeModel {
 	var total float64
 	var curr int
 	best := make([]byte, len(meta))
-	for i := 0; total <= fit.MaxW; i++ {
+	for i := 0; total <= perf.MaxW; i++ {
 		curr = meta[i].item
 		best[curr] = 0x1
-		total += fit.Weights[curr]
+		total += perf.Weights[curr]
 	}
 	best[curr] = 0x0
 
