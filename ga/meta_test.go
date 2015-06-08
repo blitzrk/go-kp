@@ -37,13 +37,13 @@ var tests = []struct {
 	},
 }
 
-func (ps1 metadata) equals(ps2 metadata) bool {
+func metadataEqual(ps1, ps2 metadata) bool {
 	if len(ps1) != len(ps2) {
 		return false
 	}
 
 	for i := 0; i < len(ps1); i++ {
-		if ps1[i].item != ps2[i].item {
+		if ps1[i].item != ps2[i].item || ps1[i].score != ps2[i].score {
 			return false
 		}
 	}
@@ -53,7 +53,7 @@ func (ps1 metadata) equals(ps2 metadata) bool {
 func TestSort(t *testing.T) {
 	for i := 0; i < len(tests); i++ {
 		sort.Sort(sort.Reverse(byScore(tests[i].in)))
-		if !tests[i].in.equals(tests[i].out) {
+		if !metadataEqual(tests[i].in, tests[i].out) {
 			t.Errorf("Sorting failed, got %v, expected %v", tests[i].in, tests[i].out)
 		}
 	}

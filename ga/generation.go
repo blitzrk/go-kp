@@ -2,24 +2,22 @@ package ga
 
 import (
 	"fmt"
-	"log"
-	"math/rand"
 	"sort"
 )
 
-type generation []Chromosome
+type generation []ChromosomeModel
 
 // A Generation is a collection of chromosomes with a method of selecting,
 // based on fitness, which chromosomes should be used as parents for the
 // breeding phase.
 type Generation struct {
-	generation
+	gen  generation
 	meta metadata
 }
 
 // Returns a string representing the array of chromosomes.
 func (g *Generation) String() string {
-	return fmt.Sprint(g.generation)
+	return fmt.Sprint(g.gen)
 }
 
 // Returns information on the ordering of the Generation's chromosomes by
@@ -29,8 +27,8 @@ func (g *Generation) rank(p Performance) metadata {
 		return g.meta
 	}
 
-	ps := make(metadata, len(g.generation))
-	for i, c := range g.generation {
+	ps := make(metadata, len(g.gen))
+	for i, c := range g.gen {
 		ps[i] = data{i, p.Fitness(c)}
 	}
 	sort.Sort(sort.Reverse(byScore(ps)))
@@ -44,73 +42,9 @@ func (g *Generation) rank(p Performance) metadata {
 func (g *Generation) cherryPick(its []int) generation {
 	pick := make(generation, len(its))
 	for i, v := range its {
-		pick[i] = g.generation[v]
+		pick[i] = g.gen[v]
 	}
 	return pick
-}
-
-// Separates the n chromosomes with highest fitness and the rest as two
-// separate Generations and returns pointers to them.
-func (g *Generation) extractElite(n int, p Performance) (*Generation, *Generation) {
-	if n > len(g.generation) {
-		log.Printf(`Warning: Elitism set to %v, but generation only has %v chromosomes.
-			Therefore, the entire generation will be selected as parents.\n`, n,
-			len(g.generation))
-		n = len(g.generation)
-	}
-
-	elite := make(generation, n)
-	rem := make(generation, len(g.generation)-n)
-
-	ranked := g.rank(p)
-	sortedChroms := g.cherryPick(ranked.Items())
-	copy(elite, sortedChroms[:n])
-	copy(rem, sortedChroms[n:])
-
-	return &Generation{elite, ranked.Subset(0, n)},
-		&Generation{rem, ranked.Subset(n, len(ranked))}
-}
-
-// Implements the roulette-wheel selection method for deciding
-// probabilistically which chromosomes to breed. Alternate selection methods
-// exist, but for now roulette is built in and is the only option.
-func (g *Generation) roulette() *Generation {
-	// Determine cutoffs for CDF
-	scores := g.meta.Scores()
-	var total float64
-	for _, v := range scores {
-		total += v
-	}
-	cutoffs := make([]float64, len(g.meta))
-	for i, _ := range cutoffs {
-		cutoffs[i] = scores[i] / total
-	}
-
-	// Make n spins to select up to n chromosomes
-	n := len(g.generation)
-	set := make(map[int]struct{})
-	for i := 0; i < n; i++ {
-		r := rand.Float64()
-		for i, v := range cutoffs {
-			if r <= v {
-				set[i] = struct{}{}
-				break
-			}
-		}
-	}
-
-	// Extract set's keys for selections
-	sel := make([]int, len(set))
-	i := 0
-	for k, _ := range set {
-		sel[i] = k
-		i++
-	}
-
-	// Make a generation of just those chromosomes
-	parents := &Generation{g.cherryPick(sel), nil}
-
-	return parents
 }
 
 // Merges two generations and returns the new one instance pointer. The intent
@@ -119,9 +53,9 @@ func (g *Generation) roulette() *Generation {
 // generation should be ranked already, and the merged ranks will be needed,
 // an optimization is applied for determining the new ranks faster.
 func (g1 *Generation) merge(g2 *Generation) *Generation {
-	m := make(generation, len(g1.generation)+len(g2.generation))
-	copy(m[:len(g1.generation)], g1.generation)
-	copy(m[len(g1.generation):], g2.generation)
+	m := make(generation, len(g1.gen)+len(g2.gen))
+	copy(m[:len(g1.gen)], g1.gen)
+	copy(m[len(g1.gen):], g2.gen)
 
 	if g1.meta == nil || g2.meta == nil {
 		return &Generation{m, nil}
@@ -129,22 +63,13 @@ func (g1 *Generation) merge(g2 *Generation) *Generation {
 	return &Generation{m, g1.meta.MergeSortedDesc(g2.meta)}
 }
 
-// Selects the n most fit chromosomes and some of the remaining (using the
-// roulette method) based on fitness to be used as the parent generation.
-func (g *Generation) Select(nElite int, p Performance) *Generation {
-	elite, rem := g.extractElite(nElite, p)
-	sel := rem.roulette()
-	sel.rank(p)
-	return sel.merge(elite)
-}
-
 // Creates a random generation of parent candidates of popSize using the given
 // function to generate a random chromosome.
-func NewInitGen(popSize int, randChrom func() Chromosome) *Generation {
+func NewInitGen(popSize, chromSize int, randChrom func(int) ChromosomeModel) *Generation {
 	gen := make(generation, popSize)
 
 	for i := 0; i < len(gen); i++ {
-		gen[i] = randChrom()
+		gen[i] = randChrom(chromSize)
 	}
 
 	return &Generation{gen, nil}
@@ -155,8 +80,8 @@ func NewInitGen(popSize int, randChrom func() Chromosome) *Generation {
 // can be used to potentially improve the randomly generated initial
 // generation.
 type GreedyPerformance interface {
-	Fitness(Chromosome) float64
-	Greedy() Chromosome
+	Performance
+	Greedy() ChromosomeModel
 }
 
 // Tries to improve the initial generation by using a (hopefully fast) greedy
@@ -165,11 +90,11 @@ func ImproveInitGen(gen *Generation, gp GreedyPerformance) {
 	g := &Generation{generation{gp.Greedy()}, nil}
 	gen = gen.merge(g)
 
-	// Known memory leak: but only 2 meta and only run once
+	// Known memory leak: but only 2 data structs and only run once
 	gen.rank(gp)
 	worst := gen.meta[len(gen.meta)-1].item
 	gen = &Generation{
-		append(gen.generation[:worst], gen.generation[worst+1:]...),
+		append(gen.gen[:worst], gen.gen[worst+1:]...),
 		gen.meta[:len(gen.meta)-1],
 	}
 }

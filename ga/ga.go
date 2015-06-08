@@ -5,7 +5,6 @@ package ga
 import (
 	"bytes"
 	"fmt"
-	"math/rand"
 	"sort"
 )
 
@@ -15,13 +14,25 @@ import (
 // 0x0, 0x1, 0x2, 0x3).
 type Chromosome []byte
 
+// Types that supertype (or embed) Chromosome should implement the
+// ChromosomeModel interface.
+type ChromosomeModel interface {
+	Key() string
+	Len() int
+	Loc(int) byte
+	MutateChar(int)
+}
+
 // This interface is for a construct that can find the fitness value of a given
 // chromosome. The reason for having a struct to perform the calculations
 // instead of a closure (because both can manage caching) is to allow wrapping
 // in related functions that use Fitness such as greedy algorithms for
-// optimizing initial populations.
+// optimizing initial populations. It is also a generator for random
+// Chromosomes. Generation is tied to Fitness, because Rand should not return
+// a non-viable Chromosome.
 type Performance interface {
-	Fitness(Chromosome) float64
+	Fitness(ChromosomeModel) float64
+	Rand(int) ChromosomeModel
 }
 
 func (c Chromosome) String() string {
@@ -42,27 +53,14 @@ func (c Chromosome) String() string {
 // manipulated through Parameters. Uint varieties are used to help inform what
 // the expected size of each parameter should be.
 type Parameters struct {
-	Performance
-	ChromLen   uint
-	ChromChars uint8
-	Pop        uint
-	Elite      uint8
-	Crosses    uint8
-	CrossProb  float64
-	MutateProb float64
-	MaxGens    uint32
-}
-
-func randChromosomeFunc(chars, clen int, p Performance) func() Chromosome {
-	return func() Chromosome {
-		c := make(Chromosome, clen)
-		for p.Fitness(c) == 0 {
-			for i := 0; i < len(c); i++ {
-				c[i] = byte(rand.Intn(chars))
-			}
-		}
-		return c
-	}
+	Perf       Performance // Struct with fitness information
+	Loci       uint        // Length of chromosome in characters
+	InitPop    uint        // How many (random) chromosomes to start with
+	Elite      uint8       // How many of the best chromosomes to keep from each generation
+	Crosses    uint8       // Max number of locations to cross DNA during breeding
+	CrossProb  float64     // Probability of a single cross happening
+	MutateProb float64     // Probability of a mutation happening at a locus
+	MaxGens    uint32      // Stop the algorithm after this many gens, even w/o convergence
 }
 
 // Each run returns a single RunResult, which contains the best value obtained
@@ -86,20 +84,20 @@ func SortResults(rs []*RunResult) {
 // This is the main function for running the algorithm.
 func Run(p *Parameters) (*RunResult, error) {
 	// Generate initial population
-	cf := randChromosomeFunc(int(p.ChromChars), int(p.ChromLen), p.Performance)
-	g := NewInitGen(int(p.Pop), cf)
-	if gp, ok := interface{}(p).(GreedyPerformance); ok {
+	g := NewInitGen(int(p.InitPop), int(p.Loci), p.Perf.Rand)
+	if gp, ok := interface{}(p.Perf).(GreedyPerformance); ok {
 		ImproveInitGen(g, gp)
 	}
 
 	for gen := 0; gen < int(p.MaxGens); gen++ {
 		// Select portion of population to breed
-		breeders := g.Select(int(p.Elite), p.Performance)
+		parents := g.Select(int(p.Elite), p.Perf)
 
 		// TODO(ben): Breed
-		_ = breeders
+		children := parents.Breed(int(p.Crosses), p.CrossProb, p.MutateProb)
 
 		// TODO(ben): Check stopping conditions
+		_ = children
 	}
 
 	return nil, nil

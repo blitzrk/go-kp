@@ -1,23 +1,29 @@
-package ga
+package zeroone
 
 import (
 	"testing"
 )
 
 var testZeroOneP = &Parameters{
-	ChromLen:   3,
 	Pop:        30,
 	Elite:      2,
 	Crosses:    1,
 	CrossProb:  0.85,
 	MutateProb: 0.001,
 	MaxGens:    5,
-	Performance: &ZeroOneFit{
+	Performance: &Fit{
 		Scores:  []float64{3, 4, 6},
 		Weights: []float64{3, 4, 6},
 		MaxW:    7,
 	},
 }
+
+var testGen = &Generation{generation{
+	Chromosome{0x1, 0x1, 0x0, 0x1},
+	Chromosome{0x0, 0x1, 0x1, 0x0},
+	Chromosome{0x1, 0x0, 0x0, 0x0},
+	Chromosome{0x0, 0x0, 0x0, 0x1},
+}, nil}
 
 func TestGreedy(t *testing.T) {
 	if gp, ok := interface{}(testZeroOneP.Performance).(GreedyPerformance); ok {
