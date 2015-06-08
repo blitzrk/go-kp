@@ -8,18 +8,18 @@ import (
 )
 
 // Chromosome with two character alphabet.
-type Chromosome []byte
+type Chromosome ga.Chromosome
 
 func (c *Chromosome) Key() string      { return string([]byte(*c)) }
-func (c *Chromosome) Len() int         { return len(c) }
-func (c *Chromosome) Loc(i int) byte   { return c[i] }
-func (c *Chromosome) MutateChar(i int) { c[i] = byte((c[i] + 1) % 2) }
+func (c *Chromosome) Len() int         { return len(*c) }
+func (c *Chromosome) Loc(i int) byte   { return (*c)[i] }
+func (c *Chromosome) MutateChar(i int) { (*c)[i] = byte(((*c)[i] + 1) % 2) }
 
 // Creates a function that produces a random Chromosome
 func RandFactory(clen uint, p ga.Performance) func() ga.ChromosomeModel {
 	return func() ga.ChromosomeModel {
 		c := make(Chromosome, clen)
-		for p.Fitness(c) == 0 {
+		for p.Fitness(&c) == 0 {
 			for i := 0; i < len(c); i++ {
 				c[i] = byte(rand.Intn(2))
 			}
@@ -37,30 +37,40 @@ type Fit struct {
 	MaxW    float64
 }
 
-func (b *Fit) Fitness(cm ga.ChromosomeModel) float64 {
-	if b.cache == nil {
-		b.cache = make(map[string]float64)
+func (fit *Fit) Fitness(cm ga.ChromosomeModel) float64 {
+	if fit.cache == nil {
+		fit.cache = make(map[string]float64)
 	}
-	if v, ok := b.cache[cm.Key()]; ok {
+	if v, ok := fit.cache[cm.Key()]; ok {
 		return v
 	}
 
 	var sumS float64
 	var sumW float64
-	for i, v := range cr {
-		if v == 0x1 {
-			sumS += b.Scores[i]
-			sumW += b.Weights[i]
+	for i := 0; i < cm.Len(); i++ {
+		if cm.Loc(i) == 0x1 {
+			sumS += fit.Scores[i]
+			sumW += fit.Weights[i]
 		}
 	}
 
 	// Zero fitness if infeasible
-	if sumW > b.MaxW {
+	if sumW > fit.MaxW {
 		sumS = 0
 	}
 
-	b.cache[string(cr)] = sumS
+	fit.cache[cm.Key()] = sumS
 	return sumS
+}
+
+func (fit *Fit) Rand(clen int) ga.ChromosomeModel {
+	c := make(Chromosome, clen)
+	for fit.Fitness(&c) == 0 {
+		for i := 0; i < len(c); i++ {
+			c[i] = byte(rand.Intn(2))
+		}
+	}
+	return &c
 }
 
 type data struct {
@@ -83,12 +93,14 @@ func (fit *Fit) Greedy() ga.ChromosomeModel {
 
 	var total float64
 	var curr int
-	best := make(ga.Chromosome, len(meta))
+	best := make([]byte, len(meta))
 	for i := 0; total <= fit.MaxW; i++ {
 		curr = meta[i].item
 		best[curr] = 0x1
 		total += fit.Weights[curr]
 	}
 	best[curr] = 0x0
-	return best
+
+	res := Chromosome(best)
+	return &res
 }
