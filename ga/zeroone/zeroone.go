@@ -8,13 +8,28 @@ import (
 )
 
 // Chromosome with two character alphabet.
-type Chromosome ga.Chromosome
+type Chromosome []byte
 
 func (c *Chromosome) Key() string      { return string([]byte(*c)) }
 func (c *Chromosome) Len() int         { return len(*c) }
 func (c *Chromosome) Loc(i int) byte   { return (*c)[i] }
 func (c *Chromosome) MutateChar(i int) { (*c)[i] = byte(((*c)[i] + 1) % 2) }
 func (c Chromosome) String() string    { return ga.Chromosome(c).String() }
+func (c *Chromosome) Cross(loc int, cm ga.ChromosomeModel) (ga.ChromosomeModel, ga.ChromosomeModel) {
+	var child1, child2 Chromosome
+	c1 := *c
+	c2 := make([]byte, cm.Len())
+	for i, _ := range c2 {
+		c2[i] = cm.Loc(i)
+	}
+
+	copy(child1[:loc], c1[:loc])
+	copy(child2[:loc], c2[:loc])
+	copy(child1[loc:], c2[loc:])
+	copy(child2[loc:], c1[loc:])
+
+	return &child1, &child2
+}
 
 // Creates a function that produces a random Chromosome
 func RandFactory(clen uint, p ga.Performance) func() ga.ChromosomeModel {

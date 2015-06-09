@@ -48,3 +48,7 @@ func TestString(t *testing.T) {
 		t.Errorf("%v != %v", c1, c2)
 	}
 }
+
+func TestCross(t *testing.T) {
+	t.Log("TODO")
+}
