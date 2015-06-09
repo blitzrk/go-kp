@@ -7,11 +7,10 @@ import (
 
 // Selects the n most fit chromosomes and some of the remaining (using the
 // roulette method) based on fitness to be used as the parent generation.
-func (g *Generation) Select(nElite int, p Performance) *Generation {
+func (g *Generation) Select(nElite int, p Performance) *Breeder {
 	elite, rem := g.extractElite(nElite, p)
 	sel := rem.roulette()
-	sel.rank(p)
-	return sel.append(elite)
+	return NewBreeder(elite.append(sel))
 }
 
 // Separates the n chromosomes with highest fitness and the rest as two

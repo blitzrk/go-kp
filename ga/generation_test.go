@@ -69,6 +69,18 @@ func TestRank(t *testing.T) {
 	}
 }
 
+func chromosomesEqual(c1, c2 ChromosomeModel) bool {
+	if c1.Len() != c2.Len() {
+		return false
+	}
+	for j := 0; j < c1.Len(); j++ {
+		if c1.Loc(j) != c2.Loc(j) {
+			return false
+		}
+	}
+	return true
+}
+
 func generationsEqual(g1, g2 generation) bool {
 	if len(g1) != len(g2) {
 		return false
@@ -78,13 +90,8 @@ func generationsEqual(g1, g2 generation) bool {
 	}
 
 	for i := 0; i < len(g1); i++ {
-		if g1[i].Len() != g2[i].Len() {
+		if !chromosomesEqual(g1[i], g2[i]) {
 			return false
-		}
-		for j := 0; j < g1[i].Len(); j++ {
-			if g1[i].Loc(j) != g2[i].Loc(j) {
-				return false
-			}
 		}
 	}
 	return true

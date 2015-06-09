@@ -23,7 +23,7 @@ func (g *Generation) String() string {
 // Returns information on the ordering of the Generation's chromosomes by
 // fitness.
 func (g *Generation) rank(p Performance) metadata {
-	if g.meta != nil {
+	if g.meta != nil && sort.IsSorted(sort.Reverse(byScore(g.meta))) {
 		return g.meta
 	}
 
