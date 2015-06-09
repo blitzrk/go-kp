@@ -84,7 +84,7 @@ func SortResults(rs []*RunResult) {
 // This is the main function for running the algorithm.
 func Run(p *Parameters) (*RunResult, error) {
 	// Generate initial population
-	g := NewInitGen(int(p.InitPop), p.Perf.Rand)
+	g := NewInitGen(int(p.InitPop), p.Perf)
 	if gp, ok := interface{}(p.Perf).(GreedyPerformance); ok {
 		ImproveInitGen(g, gp)
 	}

@@ -65,11 +65,11 @@ func (g1 *Generation) append(g2 *Generation) *Generation {
 
 // Creates a random generation of parent candidates of popSize using the given
 // function to generate a random chromosome.
-func NewInitGen(popSize int, randChrom func() ChromosomeModel) *Generation {
+func NewInitGen(popSize int, perf Performance) *Generation {
 	gen := make(generation, popSize)
 
 	for i := 0; i < len(gen); i++ {
-		gen[i] = randChrom()
+		gen[i] = perf.Rand()
 	}
 
 	return &Generation{gen, nil}

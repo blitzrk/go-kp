@@ -40,3 +40,11 @@ func TestGreedy(t *testing.T) {
 		}
 	}
 }
+
+func TestString(t *testing.T) {
+	c1 := Chromosome{0x0, 0x1}
+	c2 := &Chromosome{0x0, 0x1}
+	if c1.String() != c2.String() {
+		t.Errorf("%v != %v", c1, c2)
+	}
+}

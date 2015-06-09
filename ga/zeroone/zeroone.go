@@ -14,6 +14,7 @@ func (c *Chromosome) Key() string      { return string([]byte(*c)) }
 func (c *Chromosome) Len() int         { return len(*c) }
 func (c *Chromosome) Loc(i int) byte   { return (*c)[i] }
 func (c *Chromosome) MutateChar(i int) { (*c)[i] = byte(((*c)[i] + 1) % 2) }
+func (c Chromosome) String() string    { return ga.Chromosome(c).String() }
 
 // Creates a function that produces a random Chromosome
 func RandFactory(clen uint, p ga.Performance) func() ga.ChromosomeModel {
