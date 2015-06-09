@@ -217,10 +217,13 @@ func TestImproveInitGen(t *testing.T) {
 			&TestPerf{4},
 			&Generation{
 				generation{
-					&TestCM{0x1, 0x0, 0x0, 0x0},
 					&TestCM{0x0, 0x0, 0x0, 0x0},
+					&TestCM{0x1, 0x0, 0x0, 0x0},
 				},
-				nil,
+				metadata{
+					data{1, 1},
+					data{0, 0},
+				},
 			},
 		},
 	}
@@ -235,9 +238,7 @@ func TestImproveInitGen(t *testing.T) {
 
 		ImproveInitGen(out, test.perf)
 		if !generationsEqual(out.gen, test.out.gen) || !metadataEqual(out.meta, test.out.meta) {
-			t.Log(out.gen)
-			t.Log(out.meta)
-			t.Errorf("Test #%v failed: Expected %v, got %#v.\n", num+1, test.out, out)
+			t.Errorf("Test #%v failed: Expected %v, got %v.\n", num+1, test.out, out)
 		}
 	}
 }

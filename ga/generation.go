@@ -88,13 +88,12 @@ type GreedyPerformance interface {
 // algorithm to add a (hopefully good) chromosome and then removing the worst.
 func ImproveInitGen(gen *Generation, gp GreedyPerformance) {
 	g := &Generation{generation{gp.Greedy()}, nil}
-	gen = gen.append(g)
+	combined := gen.append(g)
 
 	// Known memory leak: but only 2 data structs and only run once
-	gen.rank(gp)
-	worst := gen.meta[len(gen.meta)-1].item
-	gen = &Generation{
-		append(gen.gen[:worst], gen.gen[worst+1:]...),
-		gen.meta[:len(gen.meta)-1],
-	}
+	combined.rank(gp)
+	worst := combined.meta[len(combined.meta)-1].item
+	combined = &Generation{append(combined.gen[:worst], combined.gen[worst+1:]...), nil}
+	combined.rank(gp)
+	*gen = *combined
 }
