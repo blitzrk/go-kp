@@ -63,7 +63,8 @@ func (perf *Perf) Fitness(cm ga.ChromosomeModel) float64 {
 	return sumS
 }
 
-func (perf *Perf) Rand(clen int) ga.ChromosomeModel {
+func (perf *Perf) Rand() ga.ChromosomeModel {
+	clen := len(perf.Scores)
 	c := make(Chromosome, clen)
 	for perf.Fitness(&c) == 0 {
 		for i := 0; i < len(c); i++ {
