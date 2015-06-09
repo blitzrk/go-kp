@@ -21,6 +21,7 @@ type ChromosomeModel interface {
 	Len() int
 	Loc(int) byte
 	MutateChar(int)
+	Cross(int, ChromosomeModel) (ChromosomeModel, ChromosomeModel)
 }
 
 // This interface is for a construct that can find the fitness value of a given

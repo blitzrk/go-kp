@@ -13,6 +13,10 @@ func (cm TestCMMut) MutateChar(i int) {
 	(*cm.TestCM)[i] = 1 - (*cm.TestCM)[i]
 }
 
+func (cm1 TestCMMut) Cross(locus int, cm2 ChromosomeModel) (ChromosomeModel, ChromosomeModel) {
+	return nil, nil
+}
+
 // Source that alternates between 0 and 0.75
 type TestRandSource struct {
 	last int64
@@ -50,4 +54,8 @@ func TestMutateChromosome(t *testing.T) {
 			t.Errorf("Failed test #%v: Expected %v, got %v.\n", num, test.out, test.in)
 		}
 	}
+}
+
+func TestBreed(t *testing.T) {
+	t.Log("TODO")
 }

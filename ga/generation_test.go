@@ -10,6 +10,10 @@ func (cm *TestCM) Loc(i int) byte   { return (*cm)[i] }
 func (cm *TestCM) MutateChar(i int) { return }
 func (cm *TestCM) String() string   { return Chromosome(*cm).String() }
 
+func (cm1 *TestCM) Cross(locus int, cm2 ChromosomeModel) (ChromosomeModel, ChromosomeModel) {
+	return nil, nil
+}
+
 type TestPerf struct {
 	Length int
 }
