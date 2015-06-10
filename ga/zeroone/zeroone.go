@@ -2,6 +2,7 @@ package zeroone
 
 import (
 	"math/rand"
+	"reflect"
 	"sort"
 
 	"github.com/blitzrk/go-kp/ga"
@@ -15,12 +16,29 @@ func (c *Chromosome) Len() int         { return len(*c) }
 func (c *Chromosome) Loc(i int) byte   { return (*c)[i] }
 func (c *Chromosome) MutateChar(i int) { (*c)[i] = byte(((*c)[i] + 1) % 2) }
 func (c Chromosome) String() string    { return ga.Chromosome(c).String() }
+
+func tryParseBytes(b interface{}) ([]byte, bool) {
+	defer func() { recover() }()
+	if bytes := reflect.ValueOf(b).Bytes(); bytes != nil {
+		return bytes, true
+	}
+	if bytes := reflect.Indirect(reflect.ValueOf(b)).Bytes(); bytes != nil {
+		return bytes, true
+	}
+	return nil, false
+}
+
 func (c *Chromosome) Cross(loc int, cm ga.ChromosomeModel) (ga.ChromosomeModel, ga.ChromosomeModel) {
 	var child1, child2 Chromosome
 	c1 := *c
-	c2 := make([]byte, cm.Len())
-	for i, _ := range c2 {
-		c2[i] = cm.Loc(i)
+	var c2 []byte
+	if bytes, ok := tryParseBytes(cm); ok {
+		c2 = bytes
+	} else {
+		c2 = make([]byte, cm.Len())
+		for i, _ := range c2 {
+			c2[i] = cm.Loc(i)
+		}
 	}
 
 	copy(child1[:loc], c1[:loc])
