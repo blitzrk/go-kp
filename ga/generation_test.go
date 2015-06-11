@@ -2,43 +2,6 @@ package ga
 
 import "testing"
 
-type TestCM Chromosome
-
-func (cm *TestCM) Key() string      { return string(*cm) }
-func (cm *TestCM) Len() int         { return len(*cm) }
-func (cm *TestCM) Loc(i int) byte   { return (*cm)[i] }
-func (cm *TestCM) MutateChar(i int) { return }
-func (cm *TestCM) String() string   { return Chromosome(*cm).String() }
-
-func (cm1 *TestCM) Cross(locus int, cm2 ChromosomeModel) (ChromosomeModel, ChromosomeModel) {
-	return nil, nil
-}
-
-type TestPerf struct {
-	Length int
-}
-
-func (p *TestPerf) Fitness(cm ChromosomeModel) float64 {
-	var sum float64
-	for i := 0; i < cm.Len(); i++ {
-		sum += float64(int(cm.Loc(i)))
-	}
-	return sum
-}
-
-func (p *TestPerf) Rand() ChromosomeModel {
-	cm := make(TestCM, p.Length)
-	return &cm
-}
-
-func (p *TestPerf) Greedy() ChromosomeModel {
-	cm := make(TestCM, p.Length)
-	if p.Length > 0 {
-		cm[0] = 0x1
-	}
-	return &cm
-}
-
 func TestRank(t *testing.T) {
 	tests := []struct {
 		in   *Generation
@@ -71,34 +34,6 @@ func TestRank(t *testing.T) {
 			t.Errorf("Test #%v failed: Expected %v, got %v.\n", num+1, test.out, out)
 		}
 	}
-}
-
-func chromosomesEqual(c1, c2 ChromosomeModel) bool {
-	if c1.Len() != c2.Len() {
-		return false
-	}
-	for j := 0; j < c1.Len(); j++ {
-		if c1.Loc(j) != c2.Loc(j) {
-			return false
-		}
-	}
-	return true
-}
-
-func generationsEqual(g1, g2 generation) bool {
-	if len(g1) != len(g2) {
-		return false
-	}
-	if len(g1) == 0 {
-		return true
-	}
-
-	for i := 0; i < len(g1); i++ {
-		if !chromosomesEqual(g1[i], g2[i]) {
-			return false
-		}
-	}
-	return true
 }
 
 func TestGenerationCherryPick(t *testing.T) {
