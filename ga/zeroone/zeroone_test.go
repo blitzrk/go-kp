@@ -52,12 +52,16 @@ func TestString(t *testing.T) {
 func TestTryParseBytes(t *testing.T) {
 	cm1 := &Chromosome{0x0, 0x1}
 	cm2 := Chromosome{0x0, 0x1}
+	cm3 := []bool{true, false}
 
 	if _, ok := tryParseBytes(cm1); !ok {
 		t.Errorf("Cannot parse %#v as []byte", cm1)
 	}
 	if _, ok := tryParseBytes(cm2); !ok {
 		t.Errorf("Cannot parse %#v as []byte", cm2)
+	}
+	if _, ok := tryParseBytes(cm3); ok {
+		t.Errorf("Can parse %#v as []byte", cm3)
 	}
 }
 

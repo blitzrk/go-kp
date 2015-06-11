@@ -19,9 +19,6 @@ func (c Chromosome) String() string    { return ga.Chromosome(c).String() }
 
 func tryParseBytes(b interface{}) ([]byte, bool) {
 	defer func() { recover() }()
-	if bytes := reflect.ValueOf(b).Bytes(); bytes != nil {
-		return bytes, true
-	}
 	if bytes := reflect.Indirect(reflect.ValueOf(b)).Bytes(); bytes != nil {
 		return bytes, true
 	}
