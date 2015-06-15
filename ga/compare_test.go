@@ -27,3 +27,15 @@ func generationsEqual(g1, g2 generation) bool {
 	}
 	return true
 }
+
+func breedPairsEqual(bp1, bp2 []*breedPair) bool {
+	if len(bp1) != len(bp2) {
+		return false
+	}
+	for i := 0; i < len(bp1); i++ {
+		if !chromosomesEqual(bp1[i].p1, bp2[i].p1) || !chromosomesEqual(bp1[i].p2, bp2[i].p2) {
+			return false
+		}
+	}
+	return true
+}

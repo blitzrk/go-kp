@@ -1,12 +1,17 @@
 package ga
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
 
 type breedPair struct {
 	p1, p2 ChromosomeModel
+}
+
+func (bp *breedPair) String() string {
+	return fmt.Sprintf("[%v, %v]", bp.p1, bp.p2)
 }
 
 func (bp *breedPair) Crossover(locus int) {
@@ -63,8 +68,8 @@ func (b *Breeder) Breed(ncross int, pcross, pmutate float64) *Generation {
 				locus := b.r.Intn(pair.Len())
 				pair.Crossover(locus)
 			}
-			children = append(children, pair.Children()...)
 		}
+		children = append(children, pair.Children()...)
 	}
 	b.Gen = &Generation{children, nil}
 

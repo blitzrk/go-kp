@@ -9,7 +9,7 @@ func (cm *TestCM) MutateChar(i int) { return }
 func (cm *TestCM) String() string   { return Chromosome(*cm).String() }
 
 func (cm1 *TestCM) Cross(locus int, cm2 ChromosomeModel) (ChromosomeModel, ChromosomeModel) {
-	return nil, nil
+	return cm1, cm2
 }
 
 type TestCMMut struct {
@@ -49,16 +49,19 @@ func (p *TestPerf) Greedy() ChromosomeModel {
 	return &cm
 }
 
-// Source that alternates between 0 and 0.75
+// Source that alternates between 0 and 0.999...
 type TestRandSource struct {
 	last int64
 }
 
+// const maxRandInt63 int64 = 1<<62 | 1<<61 | 1<<60 | 1<<59 | 1<<58 | 1<<57 | 1<<56 | 1<<55 | 1<<54 | 1<<53 | 1<<52 | 1<<51
+const maxRandInt63 int64 = 1<<63 - 1<<10
+
 func (s *TestRandSource) Seed(seed int64) {}
 func (s *TestRandSource) Int63() int64 {
 	if s.last == 0 {
-		s.last = 1<<62 + 1<<61
-		return 1<<62 + 1<<61
+		s.last = maxRandInt63
+		return maxRandInt63
 	} else {
 		s.last = 0
 		return 0
