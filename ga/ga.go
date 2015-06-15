@@ -68,7 +68,11 @@ type Parameters struct {
 // and the corresponding Chromosome.
 type RunResult struct {
 	FitVal     float64
-	Chromosome Chromosome
+	Chromosome ChromosomeModel
+}
+
+func (rr *RunResult) String() string {
+	return fmt.Sprintf("Chromosome %v, score %v", rr.Chromosome, rr.FitVal)
 }
 
 type byFitness []*RunResult
@@ -82,6 +86,26 @@ func SortResults(rs []*RunResult) {
 	sort.Sort(sort.Reverse(byFitness(rs)))
 }
 
+func shouldStop(g *Generation, p Performance) bool {
+	// TODO(ben): population becomes significantly similar
+	return false
+}
+
+func reportBest(g *Generation, p Performance) *RunResult {
+	if g.gen == nil || len(g.gen) == 0 {
+		return nil
+	}
+
+	r := g.rank(p)
+	best := g.gen[r[0].item]
+	score := p.Fitness(best)
+
+	return &RunResult{
+		score,
+		best,
+	}
+}
+
 // This is the main function for running the algorithm.
 func Run(p *Parameters) (*RunResult, error) {
 	// Generate initial population
@@ -90,16 +114,20 @@ func Run(p *Parameters) (*RunResult, error) {
 		ImproveInitGen(g, gp)
 	}
 
+	curr := g
 	for gen := 0; gen < int(p.MaxGens); gen++ {
+		// Check stopping conditions
+		if shouldStop(curr, p.Perf) {
+			break
+		}
+
 		// Select portion of population to breed
-		parents := g.Select(int(p.Elite), p.Perf)
+		parents := curr.Select(int(p.Elite), p.Perf)
 
-		// TODO(ben): Breed
+		// Breed
 		children := parents.Breed(int(p.Crosses), p.CrossProb, p.MutateProb)
-
-		// TODO(ben): Check stopping conditions
-		_ = children
+		curr = children
 	}
 
-	return nil, nil
+	return reportBest(curr, p.Perf), nil
 }
